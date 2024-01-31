@@ -1,0 +1,14 @@
+version: "3"
+services:
+  database:
+    image: postgres
+    ports:
+      - "${DATABASE_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: dashcam
+    volumes:
+      - ${DATA_PATH_FROM_SRC_DIR}:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
+      
