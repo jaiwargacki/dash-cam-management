@@ -9,6 +9,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: dashcam
     volumes:
-      - ${DATA_PATH_FROM_SRC_DIR}:/var/lib/postgresql/data
+      - ${DATA_PATH_FROM_SRC_DIR:-../data}:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
       
