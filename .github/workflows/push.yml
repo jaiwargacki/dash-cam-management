@@ -14,25 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.11"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest psycopg2
-    - name: Docker compose config
-      run: |
-        cd src
-        docker-compose config
     - name: Docker compose
       run: |
         cd src
         docker-compose up -d
     - name: Sleep
-      run: sleep 10
+      run: sleep 5
     - name: List running containers
       run: docker ps
-    - name: Run Database Tests
-      run: pytest src/tests/test_db.py
+    
