@@ -1,4 +1,4 @@
-name: Setup Database and Test Connection
+name: Testing Application
 
 on:
   push:
@@ -18,12 +18,8 @@ jobs:
       DATABASE_PORT: 5432
     steps:
     - uses: actions/checkout@v3
-    - name: Navigate to src directory
-      run: cd src
-    - name: confirm directory
-      run: ls
     - name: Docker compose
-      run: docker-compose up -d
+      run: docker-compose up -d -f src/docker-compose.yml
     - name: Wait for 5 seconds
       run: sleep 5
     - name: Create Docker network
@@ -44,4 +40,4 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest psycopg2
     - name: Run Database Tests
-      run: pytest tests/test_db.py
+      run: pytest src/tests/test_db.py
