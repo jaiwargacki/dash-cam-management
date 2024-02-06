@@ -23,9 +23,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install pytest psycopg2
     - name: Docker compose config
-      run: docker-compose -f src/docker-compose.yml config
+      run: |
+        cd src
+        docker-compose config
     - name: Docker compose
-      run: docker-compose up -d -f src/docker-compose.yml
+      run: |
+        cd src
+        docker-compose up -d
     - name: Sleep
       run: sleep 10
     - name: List running containers
