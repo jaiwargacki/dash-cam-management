@@ -17,9 +17,11 @@ jobs:
     - name: Docker compose
       run: |
         cd src
-        docker-compose up -d
+        docker-compose --verbose up -d
     - name: Sleep
       run: sleep 5
+    - name: List Logs
+      run: docker-compose logs
     - name: List running containers
       run: docker ps
-    
+
