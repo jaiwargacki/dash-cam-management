@@ -12,13 +12,16 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      DATABASE_PORT: 5432
     steps:
     - uses: actions/checkout@v3
     - name: Navigate to src directory
       run: cd src
-    - name: 'Create env file'
-      run: |
-        echo "${{ secrets.ENV_FILE }}" > .env
+    - name: confirm directory
+      run: ls
     - name: Docker compose
       run: docker-compose up -d
     - name: Wait for 5 seconds
@@ -40,8 +43,5 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pytest psycopg2
-    - name: 'Create env file'
-      run: |
-        echo "${{ secrets.ENV_FILE }}" > .env
     - name: Run Database Tests
       run: pytest tests/test_db.py
