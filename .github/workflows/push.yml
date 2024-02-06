@@ -31,8 +31,8 @@ jobs:
     - name: List running containers
       run: |
         cd src
-        docker ps
+        docker-compose logs
     - name: Run Database Tests
       run: |
         cd src
-        pytest src/tests/test_db.py
+        pytest tests/test_db.py
