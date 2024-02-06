@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout
+    - uses: actions/checkout@v4
     - name: Docker compose
       run: docker-compose up -d -f src/docker-compose.yml
     - name: Wait for 5 seconds
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - uses: actions/checkout
+    - uses: actions/checkout@v4
     - name: Set up Python 3.11
       uses: actions/setup-python@v3
       with:
