@@ -7,5 +7,6 @@ def test_database_connection():
     try:
         conn = psycopg2.connect("dbname='dashcam' user='postgres' host='localhost' password='postgres'")
         assert True
-    except:
+    except Exception as e:
+        print(e)
         assert False
