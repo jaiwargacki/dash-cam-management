@@ -27,7 +27,7 @@ jobs:
         cd src
         docker-compose up -d
     - name: Sleep
-      run: sleep 30
+      run: sleep 5
     - name: Run Tests
       run: |
         cd src
