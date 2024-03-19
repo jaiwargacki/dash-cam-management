@@ -1,0 +1,34 @@
+{
+    "colors" : [
+        {
+            "name" : "Red",
+            "hex" : "D2042D"
+        }
+    ],
+    "dash_cams" : [
+        {
+            "name" : "Vifo",
+            "time_location_x_min" : 2190,
+            "time_location_x_max" : 2550,
+            "time_location_y_min" : 1380,
+            "time_location_y_max" : 1430,
+            "gps_location_x_min" : 10,
+            "gps_location_x_max" : 410,
+            "gps_location_y_min" : 1380,
+            "gps_location_y_max" : 1430,
+            "speed_location_x_min" : 0,
+            "speed_location_x_max" : 0,
+            "speed_location_y_min" : 0,
+            "speed_location_y_max" : 0
+        }
+    ],
+    "vehicles" : [
+        {
+            "make" : "Toyota",
+            "model" : "HRV",
+            "year" : 2019,
+            "color" : "Red",
+            "dash_cam" : "Vifo"
+        }
+    ]
+}

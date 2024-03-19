@@ -16,3 +16,5 @@ def test_database_number_of_tables():
     result = db.execute("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
     count = result[0][0]
     assert count == 11
+
+# TODO: Tests for loading configuration to the database
