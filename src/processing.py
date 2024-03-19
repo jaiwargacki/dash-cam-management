@@ -4,6 +4,8 @@
 import cv2, os, time, math
 from concurrent.futures import ThreadPoolExecutor
 
+from database import Database
+
 def move_to_storage(file_path: str, storage_path: str, delete: bool=False) -> None:
     """ Move a file to the storage location
     :param file_path: The path of the file to move
@@ -40,7 +42,7 @@ class Feature:
         """ Process a frame of the video """
         raise NotImplementedError("Subclasses must implement this method")
 
-    def save(self, trip_id: int) -> None:
+    def save(self, db: Database, vehicle_id: int, trip_id: int) -> None:
         """ Save the feature data """
         raise NotImplementedError("Subclasses must implement this method")
 
@@ -98,7 +100,7 @@ class Processing:
         if self.verbose:
             print(f"Processing took {time.time() - start_time} seconds")
 
-    def save(self) -> None:
+    def save(self, db: Database, vehicle_id: int) -> None:
         """ Save the features """
         if self.video_path is None:
             raise ValueError("No video path was given")
@@ -106,10 +108,10 @@ class Processing:
         if self.verbose:
             print("Saving features")
 
-        # Create or get the trip id
+        # TODO: Create or get the trip id
         trip_id = 1
 
         # Save the features
         for feature in self.features:
-            feature.save(trip_id)
+            feature.save(db, vehicle_id, trip_id)
 

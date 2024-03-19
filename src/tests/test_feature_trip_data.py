@@ -6,21 +6,52 @@ import cv2
 from feature_trip_data import TripData
 
 def test_trip_data_init():
-    feature = TripData()
+    text_location_data = {
+        "time_location_x_min" : 2190,
+        "time_location_x_max" : 2550,
+        "time_location_y_min" : 1380,
+        "time_location_y_max" : 1430,
+        "gps_location_x_min" : 10,
+        "gps_location_x_max" : 410,
+        "gps_location_y_min" : 1380,
+        "gps_location_y_max" : 1430
+    }
+    feature = TripData(text_location_data)
     assert feature.name == "TripData"
     assert feature.description == "Extracts the position, time, and speed of the vehicle from the video"
-    assert feature.frame_frequency == 15
+    assert feature.frame_frequency == 30
     assert feature.data_points == []
+    assert feature.text_location_data == text_location_data
     assert feature.reader is not None
 
 def test_trip_data_clear():
-    feature = TripData()
+    text_location_data = {
+        "time_location_x_min" : 2190,
+        "time_location_x_max" : 2550,
+        "time_location_y_min" : 1380,
+        "time_location_y_max" : 1430,
+        "gps_location_x_min" : 10,
+        "gps_location_x_max" : 410,
+        "gps_location_y_min" : 1380,
+        "gps_location_y_max" : 1430
+    }
+    feature = TripData(text_location_data)
     feature.data_points = ["test"]
     feature.clear()
     assert feature.data_points == []
 
 def _test_trip_data_process(path, expected_time, expected_lat, expected_lon):
-    feature = TripData()
+    text_location_data = {
+        "time_location_x_min" : 2190,
+        "time_location_x_max" : 2550,
+        "time_location_y_min" : 1380,
+        "time_location_y_max" : 1430,
+        "gps_location_x_min" : 10,
+        "gps_location_x_max" : 410,
+        "gps_location_y_min" : 1380,
+        "gps_location_y_max" : 1430
+    }
+    feature = TripData(text_location_data)
     frame = cv2.imread(path)
     feature.process(frame)
 

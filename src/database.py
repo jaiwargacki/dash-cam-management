@@ -52,6 +52,23 @@ class Database:
             {vehicle['color_id']}, {vehicle['camera_id']})"
         self.cur.execute(query)
 
+    def getTextLocationData(self, vehicle_id: int) -> dict:
+        """ Get the text location data for a vehicle """
+        query = f"SELECT D.TIME_LOCATION_X_MIN, D.TIME_LOCATION_X_MAX, D.TIME_LOCATION_Y_MIN, D.TIME_LOCATION_Y_MAX, \
+            D.GPS_LOCATION_X_MIN, D.GPS_LOCATION_X_MAX, D.GPS_LOCATION_Y_MIN, D.GPS_LOCATION_Y_MAX FROM VEHICLE V \
+            JOIN DASH_CAM D ON V.DASH_CAM_ID = D.ID WHERE V.ID = {vehicle_id}"
+        result = self.execute(query)
+        return {
+            "time_location_x_min" : result[0][0],
+            "time_location_x_max" : result[0][1],
+            "time_location_y_min" : result[0][2],
+            "time_location_y_max" : result[0][3],
+            "gps_location_x_min" : result[0][4],
+            "gps_location_x_max" : result[0][5],
+            "gps_location_y_min" : result[0][6],
+            "gps_location_y_max" : result[0][7]
+        }
+
 def main():
     """ Load a configuration file and save it to the database """
     # Arg parsing
