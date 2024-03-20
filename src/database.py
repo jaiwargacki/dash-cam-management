@@ -69,6 +69,25 @@ class Database:
             "gps_location_y_max" : result[0][7]
         }
 
+    def createTrip(self, vehicle_id: int, start_date_time: str, end_date_time: str) -> int:
+        """ Create a trip in the database and return the trip's id """
+        query = f"INSERT INTO TRIP (VEHICLE_ID, START_TIME, END_TIME) VALUES ({vehicle_id}, '{start_date_time}', '{end_date_time}') RETURNING ID;"
+        self.cur.execute(query)
+        return self.cur.fetchone()[0]
+
+    def createVideoArchive(self, trip_id: int, video_path: str) -> None:
+        """ Create a video archive in the database """
+        query = f"INSERT INTO VIDEO (TRIP_ID, FILE_PATH) VALUES ({trip_id}, '{video_path}')"
+        self.cur.execute(query)
+
+    def insertTripData(self, trip_id: int, data: list) -> None:
+        """ Insert trip data into the database """
+        query = f"INSERT INTO TRIP_DATA (TRIP_ID, TRIP_DATA_TIME, LATITUDE, LONGITUDE, SPEED) VALUES "
+        for point in data:
+            query += f"({trip_id}, '{point['time']}', '{point['lat']}', '{point['lon']}', 0),"
+        query = query[:-1] + ";"
+        self.cur.execute(query)
+
 def main():
     """ Load a configuration file and save it to the database """
     # Arg parsing

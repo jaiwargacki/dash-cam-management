@@ -63,35 +63,35 @@ def _test_trip_data_process(path, expected_time, expected_lat, expected_lon):
 
 def test_trip_data_process_1():
     path = "tests/test_data/frame01.jpg"
-    expected_time = "01/23/2024 11:43:06"
+    expected_time = "01-23-2024 11:43:06"
     expected_lat = "N43.093457"
     expected_lon = "W77.649113"
     _test_trip_data_process(path, expected_time, expected_lat, expected_lon)
 
 def test_trip_data_process_2():
     path = "tests/test_data/frame02.jpg"
-    expected_time = "01/23/2024 11:44:12"
+    expected_time = "01-23-2024 11:44:12"
     expected_lat = "N43.093270"
     expected_lon = "W77.659285"
     _test_trip_data_process(path, expected_time, expected_lat, expected_lon)
 
 def test_trip_data_process_3():
     path = "tests/test_data/frame03.jpg"
-    expected_time = "01/27/2024 21:01:46"
+    expected_time = "01-27-2024 21:01:46"
     expected_lat = "N43.087085"
     expected_lon = "W77.593351"
     _test_trip_data_process(path, expected_time, expected_lat, expected_lon)
 
 def test_trip_data_process_4():
     path = "tests/test_data/frame04.jpg"
-    expected_time = "01/31/2024 11:49:43"
+    expected_time = "01-31-2024 11:49:43"
     expected_lat = "N43.088721"
     expected_lon = "W77.677018"
     _test_trip_data_process(path, expected_time, expected_lat, expected_lon)
 
 def test_trip_data_process_5():
     path = "tests/test_data/frame05.jpg"
-    expected_time = "01/31/2024 17:52:51"
+    expected_time = "01-31-2024 17:52:51"
     expected_lat = "N43.086873"
     expected_lon = "W77.679858"
     _test_trip_data_process(path, expected_time, expected_lat, expected_lon)

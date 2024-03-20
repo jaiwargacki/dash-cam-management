@@ -17,7 +17,7 @@ def main() -> None:
     db = database.Database()
 
     # Setup processing
-    processor = processing.Processing(args.verbose)
+    processor = processing.Processing("../archived", args.verbose)
     text_location_data = db.getTextLocationData(vehicle_id)
     processor.add_feature(feature_trip_data.TripData(text_location_data))
 

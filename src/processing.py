@@ -48,13 +48,19 @@ class Feature:
 
 class Processing:
     """ A processing object """
-    def __init__(self, verbose: bool=False):
+    def __init__(self, storage_path: str = "archive", verbose: bool=False):
         self.features = []
+        self.storage_path = storage_path
         self.verbose = verbose
-        self.video_path = None
+        self.video_paths = []
+        self.TripData = None
+        self.trip_start_date_time = None
+        self.trip_end_date_time = None
 
     def add_feature(self, feature: Feature):
         self.features.append(feature)
+        if feature.name == "TripData":
+            self.TripData = feature
 
     def video_info(self, video: cv2.VideoCapture) -> dict:
         """ Get the information of the video """
@@ -74,26 +80,33 @@ class Processing:
         # Clear the features
         for feature in self.features:
             feature.clear()
-        self.video_path = video_path
-        video_capture = cv2.VideoCapture(self.video_path)
+        self.video_paths.append(video_path)
+        video_capture = cv2.VideoCapture(video_path)
         video_info = self.video_info(video_capture)
 
         if self.verbose:
-            print(f"Processing video at {self.video_path}")
+            print(f"Processing video at {video_path}")
             print(f"Video Info: {video_info}")
      
         start_time = time.time()
         with ThreadPoolExecutor() as executor:
             frame_count = 0
+            previous_frame = None
             while True:
                 ret, frame = video_capture.read()
                 if not ret:
+                    if self.TripData is not None:
+                        self.trip_end_date_time = self.TripData.get_date_time(previous_frame)
                     break
+
+                if self.TripData is not None and frame_count == 0:
+                    self.trip_start_date_time = self.TripData.get_date_time(frame)
 
                 for feature in self.features:
                     if frame_count % feature.frame_frequency == 0:
                         executor.submit(feature.process, frame)
                 frame_count += 1
+                previous_frame = frame
             executor.shutdown(wait=True)
         video_capture.release()
 
@@ -102,16 +115,26 @@ class Processing:
 
     def save(self, db: Database, vehicle_id: int) -> None:
         """ Save the features """
-        if self.video_path is None:
-            raise ValueError("No video path was given")
-
         if self.verbose:
             print("Saving features")
 
-        # TODO: Create or get the trip id
-        trip_id = 1
+        # Save trip
+        trip_id = db.createTrip(vehicle_id, self.trip_start_date_time, self.trip_end_date_time)
+        if self.verbose:
+            print(f"Trip ID: {trip_id}")
 
+        # Save video entries
+        for video_path in self.video_paths:
+            archive_path = f"{self.storage_path}/{vehicle_id}/{trip_id}"
+            filename = os.path.basename(video_path)
+            move_to_storage(video_path, f"{self.storage_path}/{vehicle_id}/{trip_id}", delete=False)
+            db.createVideoArchive(trip_id, f"{archive_path}/{filename}")
+            if self.verbose:
+                print(f"Video Archive: {archive_path}/{filename}")
+        
         # Save the features
         for feature in self.features:
             feature.save(db, vehicle_id, trip_id)
+
+        db.commit()
 
