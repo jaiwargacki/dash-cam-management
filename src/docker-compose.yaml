@@ -11,4 +11,9 @@ services:
     volumes:
       - ${DATA_PATH_FROM_SRC_DIR:-../data}:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
-      
+  plate-recognition:
+    container_name: open-alpr-http-wrapper
+    restart: unless-stopped
+    image: sclaflin/open-alpr-http-wrapper:latest
+    ports:
+      - "3000:3000"
