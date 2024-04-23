@@ -97,10 +97,11 @@ class Database:
         self.cur.execute(query)
         return self.cur.fetchone()[0]
 
-    def createVideoArchive(self, trip_id: int, video_path: str) -> None:
+    def createVideoArchive(self, trip_id: int, video_path: str) -> int:
         """ Create a video archive in the database """
-        query = f"INSERT INTO VIDEO (TRIP_ID, FILE_PATH) VALUES ({trip_id}, '{video_path}')"
+        query = f"INSERT INTO VIDEO (TRIP_ID, FILE_PATH) VALUES ({trip_id}, '{video_path}') RETURNING ID;"
         self.cur.execute(query)
+        return self.cur.fetchone()[0]
 
     def insertTripData(self, trip_id: int, data: list) -> None:
         """ Insert trip data into the database """

@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from database import Database
 
-def move_to_storage(file_path: str, storage_path: str, delete: bool=False) -> None:
+def move_to_storage(file_path: str, storage_path: str, delete: bool=False) -> str:
     """ Move a file to the storage location
     :param file_path: The path of the file to move
     :param storage_path: The path to move the file to
@@ -24,6 +24,7 @@ def move_to_storage(file_path: str, storage_path: str, delete: bool=False) -> No
         with open(file_path, 'rb') as f:
             with open(os.path.join(storage_path, file), 'wb') as s:
                 s.write(f.read())
+    return os.path.join(storage_path, file)
 
 def extract_clip(video_path: str, start_frame: int, end_frame: int, storage_path: str, feature: str = "clip") -> str:
     """ Extract a clip from a video file
@@ -41,7 +42,7 @@ def extract_clip(video_path: str, start_frame: int, end_frame: int, storage_path
     end_time = end_frame / 30
     clip = VideoFileClip(video_path).subclip(start_time, end_time)
     clip_path = os.path.join(storage_path, feature + "_" + os.path.basename(video_path))
-    clip.write_videofile(clip_path)
+    clip.write_videofile(clip_path, verbose=False, logger=None)
     clip.close()
     return clip_path
 
@@ -102,6 +103,7 @@ class Processing:
         # Clear the features
         for feature in self.features:
             feature.clear()
+        self.video_paths = [] # TODO: handle multiple video files for a single trip
         self.video_paths.append(video_path)
         video_capture = cv2.VideoCapture(video_path)
         video_info = self.video_info(video_capture)
@@ -113,30 +115,27 @@ class Processing:
         start_time = time.time()
         with ThreadPoolExecutor() as executor:
             frame_count = 0
-            previous_frame = None
             while True:
                 ret, frame = video_capture.read()
                 if not ret:
-                    if self.TripData is not None:
-                        self.trip_end_date_time = self.TripData.get_date_time(previous_frame)
                     break
-
-                if self.TripData is not None and frame_count == 0:
-                    self.trip_start_date_time = self.TripData.get_date_time(frame)
 
                 for feature in self.features:
                     if frame_count % feature.frame_frequency == 0:
                         executor.submit(feature.process, frame, frame_count)
                 frame_count += 1
-                previous_frame = frame
             executor.shutdown(wait=True)
         video_capture.release()
+
+        self.trip_start_date_time = self.TripData.data_points[min(self.TripData.data_points.keys())]["time"]
+        self.trip_end_date_time = self.TripData.data_points[max(self.TripData.data_points.keys())]["time"]
 
         if self.verbose:
             print(f"Processing took {time.time() - start_time} seconds")
 
     def save(self, db: Database, vehicle_id: int) -> None:
         """ Save the features """
+        start_time = time.time()
         if self.verbose:
             print("Saving features")
 
@@ -145,26 +144,26 @@ class Processing:
         if self.verbose:
             print(f"Trip ID: {trip_id}")
 
-        # Save video entries
-        for video_path in self.video_paths:
-            archive_path = f"{self.storage_path}/{vehicle_id}/{trip_id}"
-            filename = os.path.basename(video_path)
-            move_to_storage(video_path, f"{self.storage_path}/{vehicle_id}/{trip_id}", delete=False)
-            db.createVideoArchive(trip_id, f"{archive_path}/{filename}")
-            if self.verbose:
-                print(f"Video Archive: {archive_path}/{filename}")
-
         # Give features access to trip data
         for feature in self.features:
             if feature.name != "TripData":
                 feature.trip_data = self.TripData.data_points
         
-        # Save the features
-        archive_path = f"{self.storage_path}/{vehicle_id}/{trip_id}/features"
-        for feature in self.features:
-            # Set archive path and video path for clip extraction
-            feature.archive_path = archive_path
-            feature.video_path = self.video_paths[0]
-            feature.save(db, trip_id)
+        # Move the video to the storage location
+        archive_path = f"{self.storage_path}/{vehicle_id}/{trip_id}"
+        video_path = move_to_storage(self.video_paths[0], archive_path, delete=False)
+        db.createVideoArchive(trip_id, video_path)
 
+        with ThreadPoolExecutor() as executor:
+            # Save the features
+            for feature in self.features:
+                # Set archive path and video path for clip extraction
+                feature.archive_path = archive_path + '/features'
+                feature.video_path = self.video_paths[0]
+                executor.submit(feature.save, db, trip_id)
+
+            executor.shutdown(wait=True)
         db.commit()
+        if self.verbose:
+            print(f"Save took {time.time() - start_time} seconds")
+

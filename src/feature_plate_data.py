@@ -15,8 +15,8 @@ class PlateData(Feature):
     MAX_HEIGHT = 1080
     MAX_WIDTH = 1920
 
-    def __init__(self, verbose: bool=False):
-        super().__init__("PlateData", "Extracts the plate data from the video", 30, verbose)
+    def __init__(self, freq: int = 30, verbose: bool=False):
+        super().__init__("PlateData", "Extracts the plate data from the video", freq, verbose)
         self.trip_data = None
 
     def clear(self):
@@ -37,19 +37,22 @@ class PlateData(Feature):
                 results[plate] = {"confidence": confidence, "coordinates": coordinates}
         return results
 
-    def get_plates(self, frame) -> str:
+    def get_plates(self, frame) -> set:
         """ Get the plates from the frame, the top half of the frame is cut out and not processed """
         height, width, _ = frame.shape
         plates = set()
         if height > self.MAX_HEIGHT or width > self.MAX_WIDTH:
-            # Resize the frame
-            frame = cv2.resize(frame, (self.MAX_WIDTH, self.MAX_HEIGHT))
+            if height > self.MAX_HEIGHT * 2 or width > self.MAX_WIDTH * 2:
+                print("Frame is too large")
+                raise ValueError("Frame is too large")
             # Cut out top half of the frame
-            frame = frame[self.MAX_HEIGHT // 2:, :]
+            frame = frame[height // 2:, :]
+            # Heigh to crop text
+            height = (height // 2) - 200
             # Split to 3 images
-            left = frame[:, :self.MAX_WIDTH // 2]
-            center = frame[:, self.MAX_WIDTH // 2:]
-            right = frame[:, self.MAX_WIDTH // 4:3 * self.MAX_WIDTH // 4]
+            left = frame[:height, :width // 2]
+            center = frame[:, width // 4:3 * width // 4]
+            right = frame[:height, width // 2:]
             for f in [left, center, right]:
                 plates.update(self.plate_request(f).keys())
         return plates
@@ -61,19 +64,34 @@ class PlateData(Feature):
                 self.plate_sites[plate] = []
             self.plate_sites[plate].append(frame_number)
 
+    def get_valid_frame(self, starting_frame: int) -> int:
+        """ Get the first frame with plate data """
+        end_frame = starting_frame
+        adjust = 1
+        while end_frame not in self.trip_data:
+            if end_frame - adjust in self.trip_data:
+                end_frame -= adjust
+                break
+            if end_frame + adjust in self.trip_data:
+                end_frame += adjust
+                break
+            adjust += 1
+        return end_frame
+
     def save(self, db: Database, trip_id: int):
         """ Save the feature data (and extract clip)"""
         if self.trip_data is None:
+            print("Trip data must be set before saving")
             raise ValueError("Trip data must be set before saving")
+        # Remove plates not found in at least 2 frames
+        self.plate_sites = {plate: frames for plate, frames in self.plate_sites.items() if len(frames) > 1}
         if self.verbose:
             print(f"Saving {len(self.plate_sites)} plates")
         event_type_id = db.save_event_type(self.PLATE_TYPE_NAME)
         for plate, frames in self.plate_sites.items():
-            if len(frames) < 2:
-                continue
             plate_id = db.save_plate(plate)
-            start_frame = min(frames)
-            end_frame = max(frames)
+            start_frame = self.get_valid_frame(min(frames))
+            end_frame = self.get_valid_frame(max(frames))
             start_time = self.trip_data[start_frame]["time"]
             end_time = self.trip_data[end_frame]["time"]
             event_data = f"Plate: {plate}"
