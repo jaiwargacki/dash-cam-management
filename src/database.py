@@ -52,6 +52,28 @@ class Database:
             {vehicle['color_id']}, {vehicle['camera_id']})"
         self.cur.execute(query)
 
+    def save_event_type(self, event_type: str):
+        """ Save an event type to the database return the event type's id """
+        # Check if the event type already exists
+        query = f"SELECT ID FROM EVENT_TYPE WHERE EVENT_TYPE_NAME = '{event_type}'"
+        result = self.execute(query)
+        if result:
+            return result[0][0]
+        query = f"INSERT INTO EVENT_TYPE (EVENT_TYPE_NAME) VALUES ('{event_type}') RETURNING ID;"
+        self.cur.execute(query)
+        return self.cur.fetchone()[0]
+    
+    def save_plate(self, plate: str):
+        """ Save a plate to the database return the plate's id """
+        # Check if the plate already exists
+        query = f"SELECT ID FROM LICENSE_PLATE WHERE LICENSE_PLATE_NUMBER = '{plate}'"
+        result = self.execute(query)
+        if result:
+            return result[0][0]
+        query = f"INSERT INTO LICENSE_PLATE (LICENSE_PLATE_NUMBER) VALUES ('{plate}') RETURNING ID;"
+        self.cur.execute(query)
+        return self.cur.fetchone()[0]
+
     def getTextLocationData(self, vehicle_id: int) -> dict:
         """ Get the text location data for a vehicle """
         query = f"SELECT D.TIME_LOCATION_X_MIN, D.TIME_LOCATION_X_MAX, D.TIME_LOCATION_Y_MIN, D.TIME_LOCATION_Y_MAX, \
@@ -86,6 +108,24 @@ class Database:
         for point in data:
             query += f"({trip_id}, '{point['time']}', '{point['lat']}', '{point['lon']}', 0),"
         query = query[:-1] + ";"
+        self.cur.execute(query)
+
+    def insertEvent(self, trip_id: int, event_type_id: int, start_time: str, end_time: str, clip_path = None, event_data: str = "") -> int:
+        """ Insert an event into the database return the event's id """
+        if clip_path is not None:
+            clip_path = f"'{clip_path}'"
+            query = f"INSERT INTO CLIP (IS_VIDEO, FILE_PATH) VALUES (TRUE, {clip_path}) RETURNING ID;"
+            self.cur.execute(query)
+            clip_path = self.cur.fetchone()[0]
+        else:
+            clip_path = "NULL"
+        query = f"INSERT INTO EVENT (TRIP_ID, EVENT_TYPE, EVENT_DATA, START_TIME, END_TIME, CLIP_ID) VALUES ({trip_id}, {event_type_id}, '{event_data}', '{start_time}', '{end_time}', {clip_path}) RETURNING ID;"
+        self.cur.execute(query)
+        return self.cur.fetchone()[0]
+
+    def insertEventPlate(self, event_type_id: int, plate_id: int) -> None:
+        """ Insert an event into the database """
+        query = f"INSERT INTO EVENT_LICENSE_PLATE (EVENT_ID, LICENSE_PLATE_ID) VALUES ({event_type_id}, {plate_id});"
         self.cur.execute(query)
 
 def main():

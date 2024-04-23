@@ -3,7 +3,7 @@
 
 import argparse
 
-import processing, feature_trip_data, database
+import processing, feature_trip_data, feature_plate_data, database
 
 def main() -> None:
     """ Main function for processing a video file """
@@ -13,6 +13,7 @@ def main() -> None:
     parser.add_argument("--verbose", action="store_true", help="Print verbose output")
     args = parser.parse_args()
 
+    # TODO: Get the vehicle id from args
     vehicle_id = 1
     db = database.Database()
 
@@ -20,6 +21,7 @@ def main() -> None:
     processor = processing.Processing("../archived", args.verbose)
     text_location_data = db.getTextLocationData(vehicle_id)
     processor.add_feature(feature_trip_data.TripData(text_location_data))
+    processor.add_feature(feature_plate_data.PlateData())
 
     # Process the video
     processor.process(args.video_path)

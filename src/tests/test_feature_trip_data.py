@@ -20,7 +20,7 @@ def test_trip_data_init():
     assert feature.name == "TripData"
     assert feature.description == "Extracts the position, time, and speed of the vehicle from the video"
     assert feature.frame_frequency == 30
-    assert feature.data_points == []
+    assert feature.data_points == dict()
     assert feature.text_location_data == text_location_data
     assert feature.reader is not None
 
@@ -36,9 +36,9 @@ def test_trip_data_clear():
         "gps_location_y_max" : 1430
     }
     feature = TripData(text_location_data)
-    feature.data_points = ["test"]
+    feature.data_points = {0: {"frame_number": 0, "time": "01-23-2024 11:43:06", "lat": "N43.093457", "lon": "W77.649113"}}
     feature.clear()
-    assert feature.data_points == []
+    assert feature.data_points == dict()
 
 def _test_trip_data_process(path, expected_time, expected_lat, expected_lon):
     text_location_data = {
@@ -53,10 +53,10 @@ def _test_trip_data_process(path, expected_time, expected_lat, expected_lon):
     }
     feature = TripData(text_location_data)
     frame = cv2.imread(path)
-    feature.process(frame)
+    feature.process(frame, 1)
 
-    assert len(feature.data_points) == 1
-    actual = feature.data_points[0]
+    assert len(feature.data_points.values()) == 1
+    actual = feature.data_points[1]
     assert actual["time"] == expected_time
     assert actual["lat"] == expected_lat
     assert actual["lon"] == expected_lon

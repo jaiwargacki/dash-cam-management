@@ -1,7 +1,8 @@
 """ General functions for processing video data
 @author: Jai Wargacki"""
 
-import cv2, os, time, math
+import cv2, os, time
+from moviepy.editor import VideoFileClip
 from concurrent.futures import ThreadPoolExecutor
 
 from database import Database
@@ -24,12 +25,33 @@ def move_to_storage(file_path: str, storage_path: str, delete: bool=False) -> No
             with open(os.path.join(storage_path, file), 'wb') as s:
                 s.write(f.read())
 
+def extract_clip(video_path: str, start_frame: int, end_frame: int, storage_path: str, feature: str = "clip") -> str:
+    """ Extract a clip from a video file
+    :param video_path: The path to the video file
+    :param start_frame: The start frame of the clip
+    :param end_frame: The end frame of the clip
+    :param storage_path: The path to save the clip
+    :param feature: The feature of the clip
+    """
+    if not os.path.exists(video_path):
+        raise FileNotFoundError(f"File does not exist at {video_path}")
+    if not os.path.exists(storage_path):
+        os.makedirs(storage_path)
+    start_time = start_frame / 30
+    end_time = end_frame / 30
+    clip = VideoFileClip(video_path).subclip(start_time, end_time)
+    clip_path = os.path.join(storage_path, feature + "_" + os.path.basename(video_path))
+    clip.write_videofile(clip_path)
+    clip.close()
+    return clip_path
+
 class Feature: 
     """ A metadata feature of a video """
-    def __init__(self, name: str, description: str, frame_frequency: int=1):
+    def __init__(self, name: str, description: str, frame_frequency: int=1, verbose: bool=False):
         self.name = name
         self.description = description
         self.frame_frequency = frame_frequency
+        self.verbose = verbose
 
     def __str__(self):
         return f"{self.name}: {self.description}"
@@ -38,11 +60,11 @@ class Feature:
         """ Clear the feature data """
         raise NotImplementedError("Subclasses must implement this method")
 
-    def process(self, frame) -> None:
+    def process(self, frame, frame_number: int) -> None:
         """ Process a frame of the video """
         raise NotImplementedError("Subclasses must implement this method")
 
-    def save(self, db: Database, vehicle_id: int, trip_id: int) -> None:
+    def save(self, db: Database, trip_id: int) -> None:
         """ Save the feature data """
         raise NotImplementedError("Subclasses must implement this method")
 
@@ -104,7 +126,7 @@ class Processing:
 
                 for feature in self.features:
                     if frame_count % feature.frame_frequency == 0:
-                        executor.submit(feature.process, frame)
+                        executor.submit(feature.process, frame, frame_count)
                 frame_count += 1
                 previous_frame = frame
             executor.shutdown(wait=True)
@@ -131,10 +153,18 @@ class Processing:
             db.createVideoArchive(trip_id, f"{archive_path}/{filename}")
             if self.verbose:
                 print(f"Video Archive: {archive_path}/{filename}")
+
+        # Give features access to trip data
+        for feature in self.features:
+            if feature.name != "TripData":
+                feature.trip_data = self.TripData.data_points
         
         # Save the features
+        archive_path = f"{self.storage_path}/{vehicle_id}/{trip_id}/features"
         for feature in self.features:
-            feature.save(db, vehicle_id, trip_id)
+            # Set archive path and video path for clip extraction
+            feature.archive_path = archive_path
+            feature.video_path = self.video_paths[0]
+            feature.save(db, trip_id)
 
         db.commit()
-
