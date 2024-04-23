@@ -7,7 +7,7 @@
     ],
     "dash_cams" : [
         {
-            "name" : "Vifo",
+            "name" : "Camera",
             "time_location_x_min" : 2190,
             "time_location_x_max" : 2550,
             "time_location_y_min" : 1380,
@@ -24,11 +24,11 @@
     ],
     "vehicles" : [
         {
-            "make" : "Toyota",
-            "model" : "HRV",
-            "year" : 2019,
+            "make" : "Make",
+            "model" : "Model",
+            "year" : 2024,
             "color" : "Red",
-            "dash_cam" : "Vifo"
+            "dash_cam" : "Camera"
         }
     ]
 }
