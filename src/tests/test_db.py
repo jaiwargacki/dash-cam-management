@@ -125,8 +125,8 @@ def test_database_get_text_location_data():
         'color_id': color_id,
         'camera_id': camera_id
     }
-    db.save_vehicle(vehicle)
-    result = db.getTextLocationData(1)
+    vehicle_id = db.save_vehicle(vehicle)
+    result = db.getTextLocationData(vehicle_id)
     assert len(result) == 8
     assert 'time_location_x_min' in result
     assert 'time_location_x_max' in result
@@ -168,10 +168,10 @@ def test_database_createTrip():
         'color_id': color_id,
         'camera_id': camera_id
     }
-    db.save_vehicle(vehicle)
+    vehicle_id = db.save_vehicle(vehicle)
     start_date_time = '2024-01-01 00:00:00'
     end_date_time = '2024-01-01 00:05:00'
-    trip_id = db.createTrip(1, start_date_time, end_date_time)
+    trip_id = db.createTrip(vehicle_id, start_date_time, end_date_time)
     assert trip_id > 0
 
 def test_database_createVideoArchive():
