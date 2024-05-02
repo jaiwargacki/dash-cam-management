@@ -45,12 +45,13 @@ class Database:
         self.cur.execute(query)
         return self.cur.fetchone()[0]
 
-    def save_vehicle(self, vehicle: dict):
+    def save_vehicle(self, vehicle: dict) -> int:
         """ Save a vehicle to the database return the vehicle's id """
         query = f"INSERT INTO VEHICLE (MAKE, MODEL, VEHICLE_YEAR, COLOR_ID, DASH_CAM_ID) \
             VALUES ('{vehicle['make']}', '{vehicle['model']}', {vehicle['year']}, \
-            {vehicle['color_id']}, {vehicle['camera_id']})"
+            {vehicle['color_id']}, {vehicle['camera_id']}) RETURNING ID;"
         self.cur.execute(query)
+        return self.cur.fetchone()[0]
 
     def save_event_type(self, event_type: str):
         """ Save an event type to the database return the event type's id """

@@ -206,14 +206,10 @@ def test_database_createVideoArchive():
         'color_id': color_id,
         'camera_id': camera_id
     }
-    db.save_vehicle(vehicle)
+    vehicle_id = db.save_vehicle(vehicle)
     start_date_time = '2024-01-01 00:00:00'
     end_date_time = '2024-01-01 00:05:00'
-    trip_id = db.createTrip(1, start_date_time, end_date_time)
-    video_archive = {
-        'trip_id': trip_id,
-        'file_path': 'test.mp4'
-    }
+    trip_id = db.createTrip(vehicle_id, start_date_time, end_date_time)
     video_archive_id = db.createVideoArchive(trip_id, 'test.mp4')
     assert video_archive_id > 0
 
@@ -249,10 +245,10 @@ def test_database_insertTripData():
         'color_id': color_id,
         'camera_id': camera_id
     }
-    db.save_vehicle(vehicle)
+    vehicle_id = db.save_vehicle(vehicle)
     start_date_time = '2024-01-01 00:00:00'
     end_date_time = '2024-01-01 00:05:00'
-    trip_id = db.createTrip(1, start_date_time, end_date_time)
+    trip_id = db.createTrip(vehicle_id, start_date_time, end_date_time)
     data = [{'time': '2024-01-01 00:00:00', 'lat': 0, 'lon': 0 }]
     db.insertTripData(trip_id, data)
     assert True
@@ -289,10 +285,10 @@ def test_database_insertEvent():
         'color_id': color_id,
         'camera_id': camera_id
     }
-    db.save_vehicle(vehicle)
+    vehicle_id = db.save_vehicle(vehicle)
     start_date_time = '2024-01-01 00:00:00'
     end_date_time = '2024-01-01 00:05:00'
-    trip_id = db.createTrip(1, start_date_time, end_date_time)
+    trip_id = db.createTrip(vehicle_id, start_date_time, end_date_time)
     event_type = 'Test Event Type'
     event_type_id = db.save_event_type(event_type)
     start_time = '2024-01-01 00:00:00'
@@ -332,10 +328,10 @@ def test_database_insertEventPlate():
         'color_id': color_id,
         'camera_id': camera_id
     }
-    db.save_vehicle(vehicle)
+    vehicle_id = db.save_vehicle(vehicle)
     start_date_time = '2024-01-01 00:00:00'
     end_date_time = '2024-01-01 00:05:00'
-    trip_id = db.createTrip(1, start_date_time, end_date_time)
+    trip_id = db.createTrip(vehicle_id, start_date_time, end_date_time)
     event_type = 'Test Event Type'
     event_type_id = db.save_event_type(event_type)
     start_time = '2024-01-01 00:00:00'
